@@ -1,12 +1,9 @@
-rm(list = ls())
-
 library(deSolve)
 library(conmat)
 library(dplyr)
 library(pracma)
 library(ggplot2)
 
-setwd("C:/Users/FGiannini/OneDrive/TKI 2021/RSV/R code/rsvmod_imm/")
 load("data/data.southernWA.2016.rda")
 load("data/data.contactDaily.ABSMicro.rda")
 
