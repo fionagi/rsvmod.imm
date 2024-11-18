@@ -154,9 +154,6 @@ aggregate_output <- function(deSolveOut, times, nAges, model, acc = 1, old = 0)
 #'
 aggregate_output_immi <- function(deSolveOut, times, nAges, nState, nRet, old = 0)
 {
-  #nState <- numImm * 8
-  #nRet <- nState + (numImm + 1) * 6
-
   deSolveOut <- array(deSolveOut[,-1], dim = c(length(times), nAges, nRet))
   deSolveOut <- deSolveOut[which(times == round(times)),,]
 
@@ -213,11 +210,8 @@ aggregate_output_immi <- function(deSolveOut, times, nAges, nState, nRet, old = 
 #'            2 = include 26-<36 months, 36->48 months, 48-<60 months
 #' @return list
 #'
-aggregate_output_immiPT <- function(deSolveOut, times, nAges, numImm, old = 1)
-{#browser()
-  nState <- numImm * 16
-  nRet <- nState + 6
-
+aggregate_output_immiPT <- function(deSolveOut, times, nAges, nState, nRet, old = 1)
+{
   deSolveOut <- array(deSolveOut[,-1], dim = c(length(times), nAges, nRet))
   deSolveOut <- deSolveOut[which(times == round(times)),,]
 
@@ -271,7 +265,6 @@ aggregate_output_immiPT <- function(deSolveOut, times, nAges, numImm, old = 1)
 #'
 plot_ageToRisk <- function(A, B, C, D, E, maxAge = 12)
 {
-
   age <- seq(0, maxAge, by = 0.25) #months
   Y_T0 <- data.frame(Age = age, Risk = A * exp(-B * age) + C)
   Y_T1 <- data.frame(Age = age, Risk = (A * exp(-B * age) + C) * D)
@@ -303,7 +296,7 @@ plot_ageToRisk <- function(A, B, C, D, E, maxAge = 12)
     ggplot2::theme(plot.title = ggplot2::element_text(size = 12))+
     ggplot2::scale_x_continuous(limits = c(0, maxAge + 0.1), expand = c(0, 0), breaks = 0:maxAge)+
     ggplot2::scale_y_continuous(limits = c(0, maxLimY), expand = c(0,0),
-                       breaks = seq(0, maxLimY, 0.1), labels = c(0, seq(0.1, maxLimY, 0.1)))
+                       breaks = seq(0, maxLimY, 0.01), labels = c(0, seq(0.01, maxLimY, 0.01)))
 
 
   return(list(g1, risk_df))
@@ -312,34 +305,29 @@ plot_ageToRisk <- function(A, B, C, D, E, maxAge = 12)
 ###############################################################################################
 #' Plot fit to data for risk model (with preterms)
 #'
-#' @param term table of model predicted monthly hospitalisations
+#' @param term table of MODEL predicted monthly hospitalisations
 #'             for term infants
-#' @param pTerm table of model predicted monthly hospitalisations
+#' @param pTerm table of MODEL predicted monthly hospitalisations
 #'              for preterm infants
-#' @param obs table of observed term and preterm population monthly
+#' @param obs table of OBSERVED term and preterm population monthly
 #'            hospitalisation data
 #' @param years year labels for x-axis
-#' @param old 0 = 4 age groups - <3months, 3-<6months, 6-<12months, 12-<24months
-#'            1 = include older age group 24-<60months,
-#'            2 = include older ages in yearly groups
 #' @param lineCol default line colour is black
 #' @param lineType default line type is dashed
 #' @param lineSize default line size is 1
 #' @param plotText if plotText is NA (as default), plotText is "RSV
 #'                 hospitalisations observed (dots) and model (dashed)"
-#' @param fileNames if fileName is NA (as default), resulting plots are not
+#' @param fileName if fileName is NA (as default), resulting plots are not
 #'                  saved. Otherwise fileName is base for 3 resulting jpeg files
 #' @return ggplot
 #'
-plot_riskFit <- function(term, pTerm, obs, years = 2000:2013, old = 0,
+plot_riskFit <- function(term, pTerm, obs, years = 2010:2020, 
                          lineCol = "black", lineType = "dashed", lineSize = 1,
                          plotText = NA, fileName = NA)
 {
   if(is.na(plotText)) plotText <- "RSV hospitalisations observed (dots) and model (dashed)"
 
-  colNames <- c("<3months","3-<6months", "6-<12months", "12-<24months")
-  if(old == 1) colNames <- c(colNames, "24-<60months")
-  if(old == 2) colNames <- c(colNames, "24-36months", "36-<48months", "48-<60months")
+  colNames <- c("<3months","3-<6months", "6-<12months", "12-<24months", "24-<60months")
   colnames(term) <- colNames
   colnames(pTerm) <- colNames
 
@@ -417,7 +405,7 @@ plot_riskFit <- function(term, pTerm, obs, years = 2000:2013, old = 0,
 #'
 comp_series <- function(obs1, obs2, ylabel = "Hospitalisations children < 5yo", years = 2000:2013,
                       text = "")
-{browser()
+{
   plotData <- cbind(1:length(obs1), obs1, obs2)
   colnames(plotData) <- c("Month", "obs1", "obs2")
 
@@ -447,7 +435,7 @@ comp_series <- function(obs1, obs2, ylabel = "Hospitalisations children < 5yo", 
 #'
 comp_monthly <- function(obs1, obs2, obs3 = NA, ylabel = "Hospitalisations children < 5yo",
                         text = "")
-{#browser()
+{
   if(!is.na(obs3)[1])
   {
     plotData <- cbind(1:length(obs1), obs1, obs2, obs3)
@@ -479,4 +467,59 @@ comp_monthly <- function(obs1, obs2, obs3 = NA, ylabel = "Hospitalisations child
   return(g1)
 }
 
-
+##################################################################################################
+#' Create plots of hospitalisations averted
+#'
+#' @param noVacc_data hospitalisations for pre-vaccine scenario
+#' @param vacc_data hospitalisations for vaccine scenario
+#' @param maxAge maximum age (in months) to plot
+#' @param pMonths no. of months to plot
+#'
+#' @return ggplot
+#' @export
+makePlotAvert <- function(noVacc_data, vacc_data, maxAge = 6, pMonths = 24, yMax = NA, prop_yMax = NA)
+{
+  avert <- noVacc_data[1:pMonths,1:maxAge] - vacc_data[1:pMonths,1:maxAge]
+  avert[which(avert < 0)] <- 0
+  prop_avert <- avert / sum(noVacc_data)
+  if(is.na(prop_yMax)) prop_yMax <- max(apply(prop_avert, 1, sum))
+  if(is.na(yMax)) yMax <- max(apply(avert, 1, sum)) #total averted per month over all ages
+  
+  melt_avert <- reshape2::melt(avert)
+  colnames(melt_avert) <- c("Month", "Age", "Hospitalisations")
+  
+  xlabel <- "Month"
+  ylabel <- "Hospitalisations averted"
+  
+  p1_avert <- ggplot2::ggplot(data=melt_avert, ggplot2::aes(x = Month, y = Hospitalisations, fill = as.numeric(Age) )) +
+    ggplot2::geom_bar(position="stack", stat="identity")+
+    ggplot2::scale_x_continuous(name = "Month", breaks = 1:12, 
+                                labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+    ggplot2::scale_y_continuous(name = ylabel, limits = c(0, plyr::round_any(yMax, 5, ceiling)),
+                                breaks = seq(0, plyr::round_any(yMax, 5, ceiling),5))+
+    #ggplot2::scale_fill_gradientn(name = "Age (months)", colours = viridisLite::viridis(maxAge))+
+    ggplot2::scale_fill_gradientn(name = "Age (months)", colours = c(viridisLite::viridis(12), rep(viridisLite::viridis(12)[12], maxAge - 12)))+
+    theme(legend.title=element_text(size=1))+
+    ggplot2::theme_bw()
+  
+  melt_prop <- reshape2::melt(prop_avert)
+  colnames(melt_prop) <- c("Month", "Age", "Proportions")
+  
+  xlabel <- "Month"
+  ylabel <- "Proportion of annual hospitalisations averted < 5 y.o"
+  
+  p2_avert <- ggplot2::ggplot(data=melt_prop, ggplot2::aes(x = Month, y = Proportions, fill = as.numeric(Age))) +
+    ggplot2::geom_bar(position="stack", stat="identity")+
+    ggplot2::scale_x_continuous(name = "Month", breaks = 1:12, 
+                                labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+    ggplot2::scale_y_continuous(name = ylabel, limits = c(0, plyr::round_any(prop_yMax, 0.01, ceiling)),
+                                breaks = seq(0, plyr::round_any(yMax, 0.01, ceiling),0.01))+
+    #ggplot2::scale_fill_gradientn(name = "Age (months)", colours = viridisLite::viridis(maxAge))+
+    ggplot2::scale_fill_gradientn(name = "Age (months)", colours = c(viridisLite::viridis(12), rep(viridisLite::viridis(12)[12], maxAge - 12)))+
+    ggplot2::theme_bw()
+  
+  
+  return(list(p1_avert, p2_avert))
+}

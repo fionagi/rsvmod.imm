@@ -58,24 +58,29 @@ deSolve_preTerm <- function(t, y, parms) {
     E1_bar <- y[, 14]
     I1_bar <- y[, 15]
     R1_bar <- y[, 16]
-
+    
+    #total population
     N <- S0 + E0 + I0 + R0 + S1 + E1 + I1 + R1 +
       S0_bar + E0_bar + I0_bar + R0_bar + S1_bar + E1_bar + I1_bar + R1_bar
 
+    #age rate
     tau_shift <- c((1 - alpha) * age_in[1], age_in[-1])
     tau <- c(age_out[-nAges], (1 - alpha) * age_out[nAges])
     tauBar_shift <- c(alpha * age_in[1], age_in[-1])
     tauBar <- c(age_out[-nAges], alpha * age_out[nAges])
 
+    #Force of infection
     temp <- omega_vect * (I0 + omegaE*I1 + I0_bar + omegaE*I1_bar) / N
     s <- sweep(mixing, MARGIN = 2, temp, FUN = "*")
     lambda <- b0 * (1 + b1 * cos(2* pi *t / 12 + phi)) * rowSums(s)
 
+    #Newly infected
     infect0 <- lambda * sigma_vect * S0
     infect1 <- lambda * sigma_vect * sigmaE * S1
     infect0_bar <- lambda * sigma_vect * S0_bar
     infect1_bar <- lambda * sigma_vect * sigmaE * S1_bar
 
+    #Ageing
     S0_shift <- c(1, S0[-nAges])
     E0_shift <- c(0, E0[-nAges])
     I0_shift <- c(0, I0[-nAges])
@@ -217,7 +222,7 @@ deSolve_base <- function(t, y, parms) {
 
 
   with(as.list(c(y, parms)), {
-
+#browser()
     #term population
     S0 <- y[, 1]
     E0 <- y[, 2]
@@ -231,8 +236,8 @@ deSolve_base <- function(t, y, parms) {
 
     N <- S0 + E0 + I0 + R0 + S1 + E1 + I1 + R1
 
-    tau_shift <- c(age_in[1], age_in[-1])
-    tau <- c(age_out[-nAges], age_out[nAges])
+    tau_shift <- age_in
+    tau <- age_out
 
     temp <- omega_vect * (I0 + omegaE*I1) / N
     s <- sweep(mixing, MARGIN = 2, temp, FUN = "*")
@@ -289,97 +294,3 @@ deSolve_base <- function(t, y, parms) {
                   ddetinc)))
   })
 }
-
-#'Base ODE model with multiple exposures but NO continuous ageing
-#'
-#'This function is used with R package deSolve to solve the ODEs
-#'
-#' @param t a vector of times at which model output is wanted
-#' @param y a matrix of the initial values of the state variables.
-#'          Each column corresponds to a state variable.
-#' @param parms the required model parameters and their values. For this model,
-#'              parms <- pars_pT <- list(b0 = b0,
-#'                                       b1 = b1,
-#'                                       phi = phi,
-#'                                       delta = delta,
-#'                                       gamma0 = gamma0,
-#'                                       gamma1 = gamma1,
-#'                                       nu = nu,
-#'                                       omega_vect = omega_vect,
-#'                                       omegaE = omegaE,
-#'                                       A = A,
-#'                                       B = B,
-#'                                       C = C,
-#'                                       D = D,
-#'                                       age_months = age_months,
-#'                                       sigma_vect = sigma_vect,
-#'                                       sigmaE = sigmaE,
-#'                                       mixing = mixing,
-#'                                       nAges = nAges)
-#' @return list
-#' @export
-deSolve_cohortAgeing <- function(t, y, parms) {
-
-  y <- matrix(y, nrow = 75, ncol = 14)
-
-
-  with(as.list(c(y, parms)), {
-
-    #term population
-    S0 <- y[, 1]
-    E0 <- y[, 2]
-    I0 <- y[, 3]
-    R0 <- y[, 4]
-
-    S1 <- y[, 5]
-    E1 <- y[, 6]
-    I1 <- y[, 7]
-    R1 <- y[, 8]
-
-    N <- S0 + E0 + I0 + R0 + S1 + E1 + I1 + R1
-
-    temp <- omega_vect * (I0 + omegaE*I1) / N
-    s <- sweep(mixing, MARGIN = 2, temp, FUN = "*")
-    lambda <- b0 * (1 + b1 * cos(2* pi *t / 12 + phi)) * rowSums(s)
-    infect0 <- lambda * sigma_vect * S0
-    infect1 <- lambda * sigma_vect * sigmaE * S1
-
-    dS0 <- -infect0
-    dE0 <- infect0 - delta * E0
-    dI0 <- delta*E0 - gamma0 * I0
-    dR0 <- gamma0 * I0 - nu * R0
-
-    dS1 <- -infect1 + nu * (R1+ R0)
-    dE1 <- infect1 - delta * E1
-    dI1 <- delta * E1 - gamma1 * I1
-    dR1 <- gamma1 * I1 - nu * R1
-
-    #First exposure - Incidence and detected incidence (hospitalisations)
-    dinc0 <- infect0
-    ddetinc0 <- (A * exp(-B * age_months) + C) * infect0
-
-    #Subsequent exposures
-    dinc1 <- infect1
-    ddetinc1 <- (A * exp(-B * age_months) + C) * D * infect1
-
-    #Combined
-    dinc <- infect0 + infect1
-    ddetinc <- (A * exp(-B * age_months) + C) * (infect0 + D * infect1)
-
-    return(list(c(dS0,
-                  dE0,
-                  dI0,
-                  dR0,
-                  dS1,
-                  dE1,
-                  dI1,
-                  dR1,
-                  dinc0,
-                  ddetinc0,
-                  dinc1,
-                  ddetinc1,
-                  dinc,
-                  ddetinc)))
-  })
-}
-
