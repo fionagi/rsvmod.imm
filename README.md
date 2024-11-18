@@ -1,4 +1,4 @@
-# rsvmod_imm
+# rsvmod.imm
 A mathematical compartmental transmission model for RSV with nirsevimab immunisation of infants
 
 Based on foundational work described here https://doi.org/10.1186/s12879-024-09400-2, with code here https://github.com/fionagi/rsvmod, 

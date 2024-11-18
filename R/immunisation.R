@@ -66,6 +66,7 @@ deSolve_base_imm <- function(t, y, parms) {
     M_I1 <- y[, 19]
     M_R1 <- y[, 20]
 
+    #if(t>147) browser()
     #total population
     N <- S0 + E0 + I0 + R0 + S1 + E1 + I1 + R1 +
       M_S0_1 + M_S0_2 + M_S0_3 + M_E0 + M_I0 + M_R0 +
@@ -95,10 +96,13 @@ deSolve_base_imm <- function(t, y, parms) {
     infectM1_2 <- lambda *sigma_vect * sigmaE * M_S1_2
     infectM1_3 <- lambda *sigma_vect * sigmaE * M_S1_3
     infectM1 <- infectM1_1 + infectM1_2 + infectM1_3
-
+    #if(t>147) browser()
     #AGEING
-    #Newborns split between unprotected and monoclonal depending on coverage kappaM
+    #Newborns will split between unprotected and monoclonal
+    #depending on coverage kappaM
     #unprotected
+    #S0_shift <- c(1 - kappaM_Birth[trunc(t)+1],
+    #              c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), rep(1, nAges - catchAge - 1)) * S0[-nAges])
     S0_shift <- c(1 - kappaM_Birth[trunc(t)+1],
                   c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), rep(1 - kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S0[-nAges])
     E0_shift <- c(0, E0[-nAges])
@@ -267,6 +271,7 @@ deSolve_risk_imm <- function(t, y, parms) {
   with(as.list(c(y, parms)), {
 
     #################################################################
+#browser()
     #INITIALISE#
     #UNPROTECTED
     #term population
@@ -371,41 +376,34 @@ deSolve_risk_imm <- function(t, y, parms) {
     #Newborn preterms split between unprotected and mAb depending on coverage
     #kappaM_PT and terms depending on coverage kappaM
 
+    #S0_shift <- c(1 - kappaM_Birth[trunc(t)+1],
+    # c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), rep(1 - kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S0[-nAges])
+  
+    
     #unprotected
     S0_shift <-c(1 - kappaM_Birth[trunc(t)+1],
-                 c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), 
-                   rep(1 - kappaM_dose2[trunc(t)+1], 
-                       dose2Age - catchAge), 
-                   rep(1, nAges - dose2Age - 1)) * S0[-nAges])
+                 c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), rep(1 - kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S0[-nAges])
     E0_shift <- c(0, E0[-nAges])
     I0_shift <- c(0, I0[-nAges])
     R0_shift <- c(0, R0[-nAges])
     S1_shift <- c(0,
-                  c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), 
-                    rep(1 - kappaM_dose2[trunc(t)+1], dose2Age - catchAge), 
-                    rep(1, nAges - dose2Age - 1)) * S1[-nAges])
+                  c(rep(1 - kappaM_catchUp[trunc(t)+1], catchAge), rep(1 - kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S1[-nAges])
     E1_shift <- c(0, E1[-nAges])
     I1_shift <- c(0, I1[-nAges])
     R1_shift <- c(0, R1[-nAges])
     S0bar_shift <- c(1 - kappaM_BirthPT[trunc(t)+1],
-                     c(rep(1 - kappaM_catchUpPT[trunc(t)+1], catchAge), 
-                       rep(1 - kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), 
-                       rep(1, nAges - dose2Age - 1)) * S0_bar[-nAges])
+                     c(rep(1 - kappaM_catchUpPT[trunc(t)+1], catchAge), rep(1 - kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S0_bar[-nAges])
     E0bar_shift <- c(0, E0_bar[-nAges])
     I0bar_shift <- c(0, I0_bar[-nAges])
     R0bar_shift <- c(0, R0_bar[-nAges])
     S1bar_shift <- c(0,
-                     c(rep(1 - kappaM_catchUpPT[trunc(t)+1], catchAge), 
-                       rep(1 - kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), 
-                       rep(1, nAges - dose2Age - 1)) * S1_bar[-nAges])
+                     c(rep(1 - kappaM_catchUpPT[trunc(t)+1], catchAge), rep(1 - kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), rep(1, nAges - dose2Age - 1)) * S1_bar[-nAges])
     E1bar_shift <- c(0, E1_bar[-nAges])
     I1bar_shift <- c(0, I1_bar[-nAges])
     R1bar_shift <- c(0, R1_bar[-nAges])
     #monoclonal
     M_S0_1_shift <- c(kappaM_Birth[trunc(t)+1],
-                      c(rep(kappaM_catchUp[trunc(t)+1], catchAge), 
-                        rep(kappaM_dose2[trunc(t)+1], dose2Age - catchAge), 
-                        rep(0, nAges - dose2Age - 1)) * S0[-nAges]
+                      c(rep(kappaM_catchUp[trunc(t)+1], catchAge), rep(kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(0, nAges - dose2Age - 1)) * S0[-nAges]
                       + M_S0_1[-nAges])
     M_S0_2_shift <- c(0, M_S0_2[-nAges])
     M_S0_3_shift <- c(0, M_S0_3[-nAges])
@@ -413,9 +411,7 @@ deSolve_risk_imm <- function(t, y, parms) {
     M_I0_shift <- c(0, M_I0[-nAges])
     M_R0_shift <- c(0, M_R0[-nAges])
     M_S1_1_shift <- c(0,
-                    c(rep(kappaM_catchUp[trunc(t)+1], catchAge), 
-                      rep(kappaM_dose2[trunc(t)+1], dose2Age - catchAge), 
-                      rep(0, nAges - dose2Age - 1)) * S1[-nAges]
+                    c(rep(kappaM_catchUp[trunc(t)+1], catchAge), rep(kappaM_dose2[trunc(t)+1], dose2Age - catchAge), rep(0, nAges - dose2Age - 1)) * S1[-nAges]
                     + M_S1_1[-nAges])
     M_S1_2_shift <- c(0, M_S1_2[-nAges])
     M_S1_3_shift <- c(0, M_S1_3[-nAges])
@@ -423,9 +419,7 @@ deSolve_risk_imm <- function(t, y, parms) {
     M_I1_shift <- c(0, M_I1[-nAges])
     M_R1_shift <- c(0, M_R1[-nAges])
     M_S0bar_1_shift <- c(kappaM_BirthPT[trunc(t)+1],
-                         c(rep(kappaM_catchUpPT[trunc(t)+1], catchAge), 
-                           rep(kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), 
-                           rep(0, nAges - dose2Age - 1)) * S0_bar[-nAges]
+                         c(rep(kappaM_catchUpPT[trunc(t)+1], catchAge), rep(kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), rep(0, nAges - dose2Age - 1)) * S0_bar[-nAges]
                          + M_S0_1_bar[-nAges])
     M_S0bar_2_shift <- c(0, M_S0_2_bar[-nAges])
     M_S0bar_3_shift <- c(0, M_S0_3_bar[-nAges])
@@ -433,9 +427,7 @@ deSolve_risk_imm <- function(t, y, parms) {
     M_I0bar_shift <- c(0, M_I0_bar[-nAges])
     M_R0bar_shift <- c(0, M_R0_bar[-nAges])
     M_S1bar_1_shift <- c(0,
-                       c(rep(kappaM_catchUpPT[trunc(t)+1], catchAge), 
-                         rep(kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), 
-                         rep(0, nAges - dose2Age - 1)) * S1_bar[-nAges]
+                       c(rep(kappaM_catchUpPT[trunc(t)+1], catchAge), rep(kappaM_dose2PT[trunc(t)+1], dose2Age - catchAge), rep(0, nAges - dose2Age - 1)) * S1_bar[-nAges]
                        + M_S1_1_bar[-nAges])
     M_S1bar_2_shift <- c(0, M_S1_2_bar[-nAges])
     M_S1bar_3_shift <- c(0, M_S1_3_bar[-nAges])
@@ -478,7 +470,6 @@ deSolve_risk_imm <- function(t, y, parms) {
     dM_E1 <- tau_shift * M_E1_shift + infectM1 - delta * M_E1 - nuM * M_E1 - tau * M_E1
     dM_I1 <- tau_shift * M_I1_shift + delta*M_E1 - gamma1 * M_I1 - nuM * M_I1 - tau * M_I1
     dM_R1 <- tau_shift * M_R1_shift + gamma1 * M_I1 - nu * M_R1 - nuM * M_R1 - tau * M_R1
-    
     dM_S0_1_bar <- tauBar_shift * M_S0bar_1_shift - infectM0_1_bar - nuM * M_S0_1_bar - tauBar * M_S0_1_bar
     dM_S0_2_bar <- tauBar_shift * M_S0bar_2_shift - infectM0_2_bar + nuM * (M_S0_1_bar - M_S0_2_bar) - tauBar * M_S0_2_bar
     dM_S0_3_bar <- tauBar_shift * M_S0bar_3_shift - infectM0_3_bar + nuM * (M_S0_2_bar - M_S0_3_bar) - tauBar * M_S0_3_bar
