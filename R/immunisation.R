@@ -41,7 +41,7 @@ deSolve_base_imm <- function(t, y, parms) {
 
 
   with(as.list(c(y, parms)), {
-    #if(t > 148) browser()
+
     #INITIALISE
     #unprotected
     S0 <- y[, 1]
