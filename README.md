@@ -29,5 +29,5 @@ This file contains functions to produce a range of different plots.
 
 If you wish to use any part of this code, please reference
 
-Giannini, F., Hogan, A.B., Sarna, M. et al. Modelling respiratory syncytial virus age-specific risk of hospitalisation in term and preterm infants. BMC Infect Dis 24, 510 (2024). https://doi.org/10.1186/s12879-024-09400-2
+Giannini F, Hogan AB, Cameron E, Le H, Minney-Smith C, Richmond P, Blyth CC, Glass K, Moore HC; STAMP RSV investigator team. Estimating the impact of Western Australia's first respiratory syncytial virus immunisation program for all infants: A mathematical modelling study. Vaccine. 2025 May 22;56:127155. doi: 10.1016/j.vaccine.2025.127155. Epub 2025 May 7. PMID: 40339485.
 
